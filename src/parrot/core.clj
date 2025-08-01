@@ -12,12 +12,12 @@
        :dynamic true}
   *level* :info)
 
-;; Now, appenders
 ;; NOTE: In logging originating in Log$j, an appender is simply a
 ;; component whose job is to append each log event somewhere. For eg. to
 ;; the console, to a file, to a database or over HTTP etc.  By keying
 ;; each appenders (:console, :file, :http) users can target specific
-;; appenders when they want to remove or reconfigure them.
+;; appenders when they want to remove or reconfigure them. We are
+;; following the same format for our logging library too.
 
 (defn file-appender
   "Return an appender that writes each event to `path`"
@@ -56,9 +56,6 @@
   ;; themeself.
   (atom {:console (std-out-appender)}))
 
-;; The following are the helper function to configure, reconfigure,
-;; remove and add appenders.
-
 (defn register-appender!
   "Add or replace an appendery by key."
   [k f]
@@ -75,15 +72,8 @@
   "Binds extra key/value pairs for all logs in the body"
   [context-map & body]
   `(binding [*context* (merge *context* ~context-map)]
-     ;; After updating the context, execute the body
      ~@body))
 
-;; NOTE: the point of having with context
-;; 1. It is easy to propogate/layer context. Since we are merging the
-;; context, it will allow us layer the context
-;;   For eg. (with-context {:user 42} (with-context {:trace-id t .. }))
-
-;; Logging macro
 (defmacro log
   [level fmt & args]
   (let [lvl-ord (level-order level)
