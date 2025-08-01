@@ -40,3 +40,37 @@
   "Remove an appender by key."
   [k]
   (swap! appenders dissoc k))
+
+(def ^:dynamic *context* {})
+
+(defmacro with-context
+  "Binds extra key/value pairs for all logs in the body"
+  [context-map & body]
+  `(binding [*context* (merge *context* ~context-map)]
+     ;; After updating the context, execute the body
+     ~@body))
+
+;; NOTE: the point of having with context
+;; 1. It is easy to propogate/layer context. Since we are merging the
+;; context, it will allow us layer the context
+;;   For eg. (with-context {:user 42} (with-context {:trace-id t .. }))
+
+;; Logging macro
+(defmacro log
+  [level fmt & args]
+  (let [lvl-ord (level-order level)
+        curr-ord (level-order *level*)]
+    (when (<= lvl-ord curr-ord)
+      `(let [msg# (format ~fmt ~@args)
+             meta# (meta &form)
+             file# *file*
+             ns# *ns*
+             event# {:level ~level
+                     :msg   msg#
+                     :ns    ns#
+                     :file  file#
+                     :line  (or (:line meta#) 0)
+                     :context *context*}]
+         (doseq [ap# (vals @appenders)]
+           (try (ap# event#)
+                (catch Throwable _# nil)))))))
