@@ -27,12 +27,14 @@
                  (java.io.FileWriter. path true)))]
     (fn [{:keys [level msg ns line context]}]
       (.println writer
-                (str (java.time.Instant/now)
-                     " " (name level)
-                     " [" ns " : " line "]"
-                     msg
-                     (when (seq context)
-                       (str " | " context))))
+                (let [logs {:time (str (java.time.Instant/now))
+                            :ns ns
+                            :level level
+                            :message msg}]
+                  (if (seq context)
+                    (str
+                     (assoc logs :context context))
+                    (str logs))))
       (.flush writer))))
 
 (defn std-out-appender
