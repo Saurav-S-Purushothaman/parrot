@@ -1,4 +1,5 @@
-(ns parrot.core)
+(ns parrot.core
+  (:gen-class))
 
 (defonce ^:private level-order
   {:trace 0
@@ -17,15 +18,41 @@
 ;; the console, to a file, to a database or over HTTP etc.  By keying
 ;; each appenders (:console, :file, :http) users can target specific
 ;; appenders when they want to remove or reconfigure them.
-(defonce appenders
-  (atom
-   {:console (fn [{:keys [level msg ns file line context]}]
-               (println
-                (str (name level)
-                     " [ " ns ":" line "] "
+
+(defn file-appender
+  "Return an appender that writes each event to `path`"
+  [path]
+  (let [writer (java.io.PrintWriter
+                (java.io.BufferedWriter.
+                 (java.io.FileWriter. path true)))]
+    (fn [{:keys [level msg ns line context]}]
+      (.println writer
+                (str (java.time.Instant/now)
+                     " " (name level)
+                     " [" ns " : " line "]"
                      msg
                      (when (seq context)
-                       (str " | " context)))))}))
+                       (str " | " context))))
+      (.flush writer))))
+
+(defn std-out-appender
+  "Returns an appender that writes logs to the std-out"
+  []
+  (fn [{:keys [level msg ns file line context]}]
+    (println
+     (str (name level)
+          " [ " ns ":" line "] "
+          msg
+          (when (seq context)
+            (str " | " context))))))
+
+
+(defonce ^"An atom to store all the appenders"
+  appenders
+  ;; For now, we can store only the std out appender as the default
+  ;; value. Users has the ability to add the rest of the appenders by
+  ;; themeself.
+  (atom {:console (std-out-appender)}))
 
 ;; The following are the helper function to configure, reconfigure,
 ;; remove and add appenders.
@@ -54,22 +81,6 @@
 ;; context, it will allow us layer the context
 ;;   For eg. (with-context {:user 42} (with-context {:trace-id t .. }))
 
-(defn file-appender
-  "Return an appender that writes each event to `path`"
-  [path]
-  (let [writer (java.io.PrintWriter
-                (java.io.BufferedWriter.
-                 (java.io.FileWriter. path true)))]
-    (fn [{:keys [level msg ns line context]}]
-      (.println writer
-                (str (java.time.Instant/now)
-                     " " (name level)
-                     " [" ns " : " line "]"
-                     msg
-                     (when (seq context)
-                       (str " | " context))))
-      (.flush writer))))
-
 ;; Logging macro
 (defmacro log
   [level fmt & args]
@@ -97,14 +108,27 @@
 (defmacro warn  [fmt & args] `(log :warn  ~fmt ~@args))
 (defmacro error [fmt & args] `(log :error ~fmt ~@args))
 
-
+(defn parrot-init
+  "Configure the logging from an EDN or env-vars. Call once at startup."
+  [{:keys [level file-path service env]}]
+  (alter-var-root #'parrot.core/*level* (constantly level))
+  (when file-path
+    (register-appender! :file (file-appender file-path)))
+  (alter-var-root #'parrot.core/*context*
+                  (constantly {:service service
+                               :env env})))
 
 
 (comment
   (binding [*level* :debug]
-    (register-appender! :file (file-appender "app.log"))
+    #_(register-appender! :file (file-appender "app.log"))
     (with-context {:service "payment"
                    :env "prod"}
-      (info "Service started")
+
+      (with-context {:service "payment 2"
+                     :env "prod2"}
+        (with-context {:server-name "payment3"
+                       :env "prod"}
+         (info "Service started")))
       (debug "Config : %s" {:config :true})))
   nil)
