@@ -43,6 +43,7 @@
   (fn [{:keys [level msg ns file line context]}]
     (let [log-meta {:level level
                     :at (str "[" ns ":" line"]")
+                    :message msg
                     :namespact ns
                     :line-number line}]
       (clojure.pprint/pprint (if (seq context)
