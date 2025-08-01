@@ -14,12 +14,11 @@
 ;; Now, appenders
 ;; NOTE: In logging originating in Log$j, an appender is simply a
 ;; component whose job is to append each log event somewhere. For eg. to
-;; the console, to a file, to a database or over HTTP etc.
+;; the console, to a file, to a database or over HTTP etc.  By keying
+;; each appenders (:console, :file, :http) users can target specific
+;; appenders when they want to remove or reconfigure them.
 (defonce appenders
   (atom
-   ;; NOTE: By keying each appenders (:console, :file, :http) users can
-   ;; target specific appenders when they want to remove or reconfigure
-   ;; them.
    {:console (fn [{:keys [level msg ns file line context]}]
                (println
                 (str (name level)
@@ -55,22 +54,57 @@
 ;; context, it will allow us layer the context
 ;;   For eg. (with-context {:user 42} (with-context {:trace-id t .. }))
 
+(defn file-appender
+  "Return an appender that writes each event to `path`"
+  [path]
+  (let [writer (java.io.PrintWriter
+                (java.io.BufferedWriter.
+                 (java.io.FileWriter. path true)))]
+    (fn [{:keys [level msg ns line context]}]
+      (.println writer
+                (str (java.time.Instant/now)
+                     " " (name level)
+                     " [" ns " : " line "]"
+                     msg
+                     (when (seq context)
+                       (str " | " context))))
+      (.flush writer))))
+
 ;; Logging macro
 (defmacro log
   [level fmt & args]
   (let [lvl-ord (level-order level)
         curr-ord (level-order *level*)]
     (when (<= lvl-ord curr-ord)
-      `(let [msg# (format ~fmt ~@args)
-             meta# (meta &form)
+      (let [fmeta (meta &form)]
+       `(let [msg# (format ~fmt ~@args)
              file# *file*
              ns# *ns*
              event# {:level ~level
                      :msg   msg#
                      :ns    ns#
                      :file  file#
-                     :line  (or (:line meta#) 0)
+                     :line  (or (:line ~fmeta) 0)
                      :context *context*}]
          (doseq [ap# (vals @appenders)]
            (try (ap# event#)
-                (catch Throwable _# nil)))))))
+                (catch Throwable _# nil))))))))
+
+
+(defmacro trace [fmt & args] `(log :trace ~fmt ~@args))
+(defmacro debug [fmt & args] `(log :debug ~fmt ~@args))
+(defmacro info  [fmt & args] `(log :info  ~fmt ~@args))
+(defmacro warn  [fmt & args] `(log :warn  ~fmt ~@args))
+(defmacro error [fmt & args] `(log :error ~fmt ~@args))
+
+
+
+
+(comment
+  (binding [*level* :debug]
+    (register-appender! :file (file-appender "app.log"))
+    (with-context {:service "payment"
+                   :env "prod"}
+      (info "Service started")
+      (debug "Config : %s" {:config :true})))
+  nil)
