@@ -41,12 +41,13 @@
   "Returns an appender that writes logs to the std-out"
   []
   (fn [{:keys [level msg ns file line context]}]
-    (println
-     (str (name level)
-          " [ " ns ":" line "] "
-          msg
-          (when (seq context)
-            (str " | " context))))))
+    (let [log-meta {:level level
+                    :at (str "[" ns ":" line"]")
+                    :namespact ns
+                    :line-number line}]
+      (clojure.pprint/pprint (if (seq context)
+                               (assoc log-meta :context context)
+                               log-meta)))))
 
 
 (defonce ^"An atom to store all the appenders"
