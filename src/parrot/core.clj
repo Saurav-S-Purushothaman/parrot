@@ -1,4 +1,6 @@
 (ns parrot.core
+  (:require
+   [clojure.pprint :refer [pprint]])
   (:gen-class))
 
 (defonce ^:private level-order
@@ -27,10 +29,10 @@
                  (java.io.FileWriter. path true)))]
     (fn [{:keys [level msg ns line context]}]
       (.println writer
-                (let [logs {:time (str (java.time.Instant/now))
+                (let [logs {:message msg
+                            :time (str (java.time.Instant/now))
                             :ns ns
-                            :level level
-                            :message msg}]
+                            :level level}]
                   (if (seq context)
                     (str
                      (assoc logs :context context))
@@ -41,14 +43,14 @@
   "Returns an appender that writes logs to the std-out"
   []
   (fn [{:keys [level msg ns file line context]}]
-    (let [log-meta {:level level
+    (let [log-meta {:message msg
+                    :level level
                     :at (str "[" ns ":" line"]")
-                    :message msg
                     :namespact ns
                     :line-number line}]
-      (clojure.pprint/pprint (if (seq context)
-                               (assoc log-meta :context context)
-                               log-meta)))))
+      (pprint (if (seq context)
+                (assoc log-meta :context context)
+                log-meta)))))
 
 
 (defonce ^"An atom to store all the appenders"
