@@ -1,5 +1,6 @@
 # Parrot
-Parrot is a very simple logging library for Clojure.
+Parrot is a very simple logging library for Clojur where logs are
+printed as Clojure maps
 
 ## Scope
 Parrot is my educational project to learn more about logging and how it
@@ -80,3 +81,8 @@ user> (with-context {:service "payment"
  :context {:service "payment-double", :env "prod"}}
 nil
 ```
+
+
+## TODO:
+- Fix file appender.
+- Fix line number not showing.
