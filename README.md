@@ -19,12 +19,12 @@ Basic logging with default config
 ``` clojure
 user=> (require '[parrot.core :as log])
 user=> (log/info "Hello world")
-{:level :info,
- :at "[user:0]",
- :message "Hello world",
- :namespact #namespace[user],
- :line-number 0,
- :context {:service "example", :env "local"}}
+{:message "Hello world",
+ :level :info,
+ :at "[user:113]",
+ :namespace "user",
+ :namespace2 "user",
+ :line-number 113}
 ```
 
 If you want to update the config, you can do that by providing the
@@ -55,11 +55,12 @@ user> (with-context {:service "payment"
                      :env "prod"}
         (log/info "Hello world"))
 
-{:level :info,
- :at "[user:0]",
- :message "Hello world",
- :namespact #namespace[user],
- :line-number 0,
+{:message "Hello world",
+ :level :info,
+ :at "[user:113]",
+ :namespace "user",
+ :namespace2 "user",
+ :line-number 113,
  :context {:service "payment", :env "prod"}}
 nil
 ```
