@@ -81,8 +81,3 @@ user> (with-context {:service "payment"
  :context {:service "payment-double", :env "prod"}}
 nil
 ```
-
-
-## TODO:
-- Fix file appender.
-- Fix line number not showing.

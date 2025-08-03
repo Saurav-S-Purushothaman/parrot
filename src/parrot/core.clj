@@ -127,3 +127,8 @@
          (info "Service started")))
       (debug "Config : %s" {:config :true})))
   nil)
+
+
+;; ## TODO:
+;; Fix file appender.
+;; Fix line number not showing.
