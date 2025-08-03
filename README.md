@@ -74,11 +74,12 @@ user> (with-context {:service "payment"
         (with-context {:service "payment-double"}
           (log/info "Hello world")))
 
-{:level :info,
- :at "[user:0]",
- :message "Hello world",
- :namespact #namespace[user],
- :line-number 0,
+{:message "Hello world",
+ :level :info,
+ :at "[user:113]",
+ :namespace "user",
+ :namespace2 "user",
+ :line-number 113,
  :context {:service "payment-double", :env "prod"}}
 nil
 ```
