@@ -97,12 +97,11 @@
            (try (ap# event#)
                 (catch Throwable _# nil))))))))
 
-
-(defmacro trace [fmt & args] `(log :trace ~fmt ~@args))
-(defmacro debug [fmt & args] `(log :debug ~fmt ~@args))
-(defmacro info  [fmt & args] `(log :info  ~fmt ~@args))
-(defmacro warn  [fmt & args] `(log :warn  ~fmt ~@args))
-(defmacro error [fmt & args] `(log :error ~fmt ~@args))
+(defn trace [fmt & args] (log :trace fmt args))
+(defn debug [fmt & args] (log :debug fmt args))
+(defn info  [fmt & args] (log :info  fmt args))
+(defn warn  [fmt & args] (log :warn  fmt args))
+(defn error [fmt & args] (log :error fmt args))
 
 (defn parrot-init
   "Configure the logging from an EDN or env-vars. Call once at startup."
