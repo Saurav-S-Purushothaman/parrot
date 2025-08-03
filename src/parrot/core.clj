@@ -46,7 +46,7 @@
     (let [log-meta {:message msg
                     :level level
                     :at (str "[" ns ":" line"]")
-                    :namespact ns
+                    :namespace (str ns)
                     :line-number line}]
       (pprint (if (seq context)
                 (assoc log-meta :context context)
