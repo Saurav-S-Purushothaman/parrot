@@ -97,11 +97,40 @@
            (try (ap# event#)
                 (catch Throwable _# nil))))))))
 
-(defn trace [fmt & args] (log :trace fmt args))
-(defn debug [fmt & args] (log :debug fmt args))
-(defn info  [fmt & args] (log :info  fmt args))
-(defn warn  [fmt & args] (log :warn  fmt args))
-(defn error [fmt & args] (log :error fmt args))
+(defn trace
+  "Logs a trace-level message.
+   Usage: (trace \"Formatted message: %s\" arg)"
+  [fmt & args]
+  (log :trace fmt args))
+
+(defn debug
+  "Logs a debug-level message.
+   Useful for verbose output during development or debugging.
+   Usage: (debug \"Debug info: %s\" value)"
+  [fmt & args]
+  (log :debug fmt args))
+
+(defn info
+  "Logs an info-level message.
+   For general operational messages about system progress.
+   Usage: (info \"User %s logged in\" username)"
+  [fmt & args]
+  (log :info fmt args))
+
+(defn warn
+  "Logs a warn-level message.
+   Used for situations that aren't errors but may require attention.
+   Usage: (warn \"Low disk space: %s%% remaining\" percent)"
+  [fmt & args]
+  (log :warn fmt args))
+
+(defn error
+  "Logs an error-level message.
+   Indicates a failure or unexpected condition in the system.
+   Usage: (error \"Failed to save record: %s\" err)"
+  [fmt & args]
+  (log :error fmt args))
+
 
 (defn parrot-init
   "Configure the logging from an EDN or env-vars. Call once at startup."
