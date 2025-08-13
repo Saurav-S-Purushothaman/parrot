@@ -23,7 +23,6 @@ user=> (log/info "Hello world")
  :level :info,
  :at "[user:113]",
  :namespace "user",
- :namespace2 "user",
  :line-number 113}
 ```
 

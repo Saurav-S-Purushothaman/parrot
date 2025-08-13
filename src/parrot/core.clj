@@ -80,13 +80,13 @@
 
 (defmacro log
   [level fmt & args]
-  (let [lvl-ord (level-order level)
+  (let [lvl-ord  (level-order level)
         curr-ord (level-order *level*)]
     (when (<= lvl-ord curr-ord)
       (let [fmeta (meta &form)]
-        `(let [msg# (format ~fmt ~@args)
-               file# *file*
-               ns# *ns*
+        `(let [msg#   (format ~fmt ~@args)
+               file#  *file*
+               ns#    *ns*
                event# {:level ~level
                        :msg   msg#
                        :ns    ns#
@@ -96,6 +96,7 @@
            (doseq [ap# (vals @appenders)]
              (try (ap# event#)
                   (catch Throwable _# nil))))))))
+
 
 (defn trace
   "Logs a trace-level message.
